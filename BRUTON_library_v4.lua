@@ -2002,7 +2002,11 @@ end
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 4))
+			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 6))
+			InsertTheme(Create("UIStroke", SelectedFrame, {
+				Thickness = 1,
+				ApplyStrokeMode = "Border"
+			}), "Edge")
 
 			local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
 				Size = UDim2.new(0.85, 0, 0.85, 0),
@@ -2015,13 +2019,14 @@ end
 				Text = "..."
 			}), "Text")
 
-			local Arrow = Create("ImageLabel", SelectedFrame, {
+			local Arrow = InsertTheme(Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 15, 0, 15),
 				Position = UDim2.new(0, -5, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Image = "rbxassetid://10709791523",
+				ImageColor3 = Theme["Color Dark Text"],
 				BackgroundTransparency = 1
-			})
+			}), "DarkText")
 
 			local NoClickFrame = Create("TextButton", DropdownHolder, {
 				Name = "AntiClick",
@@ -2067,7 +2072,7 @@ end
 				WaitClick = true
 				CreateTween({Arrow, "Rotation", 0, 0.2})
 				CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
-				CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
+				CreateTween({Arrow, "ImageColor3", Theme["Color Dark Text"], 0.2})
 				Arrow.Image = "rbxassetid://10709791523"
 				NoClickFrame.Visible = false
 				WaitClick = false
@@ -2096,7 +2101,7 @@ end
 				WaitClick = true
 				if NoClickFrame.Visible then
 					Arrow.Image = "rbxassetid://10709791523"
-					CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
+					CreateTween({Arrow, "ImageColor3", Theme["Color Dark Text"], 0.2})
 					CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
 					NoClickFrame.Visible = false
 				else
@@ -2724,6 +2729,10 @@ end
 				Position = UDim2.new(0.5, 0, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5)
 			}), "Stroke")Make("Corner", SliderBar)
+			InsertTheme(Create("UIStroke", SliderBar, {
+				Thickness = 1,
+				ApplyStrokeMode = "Border"
+			}), "Edge")
 
 			local Indicator = InsertTheme(Create("Frame", SliderBar, {
 				BackgroundColor3 = Theme["Color Theme"],
@@ -2731,13 +2740,13 @@ end
 				BorderSizePixel = 0
 			}), "Theme")Make("Corner", Indicator)
 
-			local SliderIcon = Create("Frame", SliderBar, {
+			local SliderIcon = InsertTheme(Create("Frame", SliderBar, {
 				Size = UDim2.new(0, 6, 0, 12),
-				BackgroundColor3 = Color3.fromRGB(220, 220, 220),
+				BackgroundColor3 = Theme["Color Text"],
 				Position = UDim2.fromScale(0.3, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 0.2
-			})Make("Corner", SliderIcon)
+			}), "Text")Make("Corner", SliderIcon)
 
 			local LabelVal = InsertTheme(Create("TextLabel", SliderHolder, {
 				Size = UDim2.new(0, 14, 0, 14),
@@ -2848,7 +2857,11 @@ end
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 4))
+			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 6))
+			InsertTheme(Create("UIStroke", SelectedFrame, {
+				Thickness = 1,
+				ApplyStrokeMode = "Border"
+			}), "Edge")
 
 			local TextBoxInput = InsertTheme(Create("TextBox", SelectedFrame, {
 				Size = UDim2.new(0.85, 0, 0.85, 0),
@@ -2863,13 +2876,14 @@ end
 				Text = ""
 			}), "Text")
 
-			local Pencil = Create("ImageLabel", SelectedFrame, {
+			local Pencil = InsertTheme(Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 12, 0, 12),
 				Position = UDim2.new(0, -5, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Image = "rbxassetid://15637081879",
+				ImageColor3 = Theme["Color Dark Text"],
 				BackgroundTransparency = 1
-			})
+			}), "DarkText")
 
 			local TextBox = {}
 			local function Input()
@@ -2884,7 +2898,7 @@ end
 			TextBoxInput.FocusLost:Connect(Input)Input()
 
 			TextBoxInput.FocusLost:Connect(function()
-				CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
+				CreateTween({Pencil, "ImageColor3", Theme["Color Dark Text"], 0.2})
 			end)
 			TextBoxInput.Focused:Connect(function()
 				CreateTween({Pencil, "ImageColor3", Theme["Color Theme"], 0.2})
