@@ -674,6 +674,40 @@ local function HexToColor(Hex)
 	return Color3.fromRGB(r, g, b)
 end
 
+local LucideModule = nil
+local LucideLoadAttempted = false
+
+local function LoadLucideModule()
+	if LucideLoadAttempted then return LucideModule end
+	LucideLoadAttempted = true
+
+	local Success, Result = pcall(function()
+		return loadstring(game:HttpGet("https://github.com/latte-soft/lucide-roblox/releases/latest/download/lucide-roblox.luau"))()
+	end)
+
+	if Success and type(Result) == "table" and type(Result.GetAsset) == "function" then
+		LucideModule = Result
+	end
+
+	return LucideModule
+end
+
+function Z7xlib:GetModernIcon(index, Size)
+	if type(index) ~= "string" or #index == 0 then return nil end
+
+	local Lucide = LoadLucideModule()
+	if not Lucide then return nil end
+
+	local Name = index:lower():gsub("^lucide%-", "")
+	local Success, Asset = pcall(Lucide.GetAsset, Name, Size or 48)
+
+	if Success and Asset and Asset.Url then
+		return Asset.Url, Asset.ImageRectOffset, Asset.ImageRectSize
+	end
+
+	return nil
+end
+
 function Z7xlib:GetIcon(index)
 	if type(index) ~= "string" or index:find("rbxassetid://") or #index == 0 then
 		return index
@@ -697,12 +731,15 @@ end
 function Z7xlib:SetTheme(NewTheme)
 	if not VerifyTheme(NewTheme) then return end
 
+	local OldTheme = Theme
 	Z7xlib.Save.Theme = NewTheme
 	SaveJson("redz library V5.json", Z7xlib.Save)
 	Theme = Z7xlib.Themes[NewTheme]
 
 	Connection:FireConnection("ThemeChanged", NewTheme)
+	local Tagged = {}
 	table.foreach(Z7xlib.Instances, function(_,Val)
+		Tagged[Val.Instance] = true
 		if Val.Type == "Gradient" then
 			Val.Instance.Color = Theme["Color Hub 1"]
 		elseif Val.Type == "Frame" then
@@ -723,6 +760,54 @@ function Z7xlib:SetTheme(NewTheme)
 			Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
 		end
 	end)
+
+	if OldTheme and OldTheme ~= Theme then
+		local PropsByClass = {
+			Frame = {"BackgroundColor3"},
+			TextButton = {"BackgroundColor3"},
+			ImageLabel = {"ImageColor3"},
+			ImageButton = {"ImageColor3"},
+			TextLabel = {"TextColor3"},
+			TextBox = {"TextColor3"},
+			ScrollingFrame = {"BackgroundColor3", "ScrollBarImageColor3"},
+			UIStroke = {"Color"},
+			UIGradient = {"Color"}
+		}
+
+		local function RemapColor(OldColor)
+			for Key, Value in pairs(OldTheme) do
+				if typeof(Value) == "Color3" and Value == OldColor then
+					return Theme[Key]
+				end
+			end
+			return nil
+		end
+
+		local function RemapInstance(Obj)
+			if Tagged[Obj] then return end
+			local Props = PropsByClass[Obj.ClassName]
+			if not Props then return end
+
+			for _,Prop in ipairs(Props) do
+				local Success, Current = pcall(function() return Obj[Prop] end)
+				if Success and typeof(Current) == "Color3" then
+					local NewColor = RemapColor(Current)
+					if NewColor then
+						Obj[Prop] = NewColor
+					end
+				end
+			end
+		end
+
+		for _,TabData in ipairs(Z7xlib.Tabs) do
+			if TabData.Cont then
+				RemapInstance(TabData.Cont)
+				for _,Obj in ipairs(TabData.Cont:GetDescendants()) do
+					RemapInstance(Obj)
+				end
+			end
+		end
+	end
 end
 
 function Z7xlib:SetScale(NewScale)
@@ -1577,8 +1662,15 @@ end
 		local TName = Configs[1] or Configs.Title or "Tab!"
 		local TIcon = Configs[2] or Configs.Icon or ""
 		local TDesc = Configs.Desc or Configs.Description or ""
+		local TIconOffset, TIconSize = nil, nil
 
-		TIcon = Z7xlib:GetIcon(TIcon)
+		local ModernUrl, ModernOffset, ModernSize = Z7xlib:GetModernIcon(TIcon)
+		if ModernUrl then
+			TIcon, TIconOffset, TIconSize = ModernUrl, ModernOffset, ModernSize
+		else
+			TIcon = Z7xlib:GetIcon(TIcon)
+		end
+
 		if not TIcon:find("rbxassetid://") or TIcon:gsub("rbxassetid://", ""):len() < 6 then
 			TIcon = false
 		end
@@ -1630,6 +1722,8 @@ end
 			LayoutOrder = -1,
 			BackgroundTransparency = 1,
 			Image = TIcon or "",
+			ImageRectOffset = TIconOffset or Vector2.new(0, 0),
+			ImageRectSize = TIconSize or Vector2.new(0, 0),
 			ImageTransparency = (FirstTab and 0.35) or 0,
 			ImageColor3 = Theme["Color Theme"]
 		}), "Theme")
@@ -1919,30 +2013,39 @@ end
 			local Default = Configs[2] or Configs.Default or false
 			if CheckFlag(Flag) then Default = GetFlag(Flag) end
 
-			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -46))
 
-			local ToggleHolder = InsertTheme(Create("Frame", Button, {
-				Size = UDim2.new(0, 35, 0, 18),
+			local ToggleHolder = Create("Frame", Button, {
+				Size = UDim2.new(0, 42, 0, 22),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+			})Make("Corner", ToggleHolder, UDim.new(0.5, 0))
 
-			local Slider = Create("Frame", ToggleHolder, {
-				BackgroundTransparency = 1,
-				Size = UDim2.new(0.8, 0, 0.8, 0),
-				Position = UDim2.new(0.5, 0, 0.5, 0),
-				AnchorPoint = Vector2.new(0.5, 0.5)
+			InsertTheme(Create("UIStroke", ToggleHolder, {
+				Thickness = 1,
+				ApplyStrokeMode = "Border"
+			}), "Edge")
+
+			local Knob = Create("Frame", ToggleHolder, {
+				Size = UDim2.new(0, 16, 0, 16),
+				Position = UDim2.new(0, 3, 0.5, 0),
+				AnchorPoint = Vector2.new(0, 0.5),
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			})Make("Corner", Knob, UDim.new(0.5, 0))
+
+			local KnobShadow = Create("UIStroke", Knob, {
+				Color = Color3.fromRGB(0, 0, 0),
+				Thickness = 1,
+				Transparency = 0.85,
+				ApplyStrokeMode = "Border"
 			})
 
-			local Toggle = InsertTheme(Create("Frame", Slider, {
-				Size = UDim2.new(0, 12, 0, 12),
-				Position = UDim2.new(0, 0, 0.5),
-				AnchorPoint = Vector2.new(0, 0.5),
-				BackgroundColor3 = Theme["Color Theme"]
-			}), "Theme")Make("Corner", Toggle, UDim.new(0.5, 0))
-
 			local WaitClick
+			local function ApplyHolderColor()
+				ToggleHolder.BackgroundColor3 = Default and Theme["Color Theme"] or Theme["Color Stroke"]
+			end
+
 			local function SetToggle(Val)
 				if WaitClick then return end
 
@@ -1950,16 +2053,16 @@ end
 				SetFlag(Flag, Default)
 				Funcs:FireCallback(Callback, Default)
 				if Default then
-					CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
-					CreateTween({Toggle, "BackgroundTransparency", 0, 0.25})
-					CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25, Wait or false})
+					CreateTween({ToggleHolder, "BackgroundColor3", Theme["Color Theme"], 0.2})
+					CreateTween({Knob, "Position", UDim2.new(1, -19, 0.5, 0), 0.2})
 				else
-					CreateTween({Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
-					CreateTween({Toggle, "BackgroundTransparency", 0.8, 0.25})
-					CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25, Wait or false})
+					CreateTween({ToggleHolder, "BackgroundColor3", Theme["Color Stroke"], 0.2})
+					CreateTween({Knob, "Position", UDim2.new(0, 3, 0.5, 0), 0.2})
 				end
 				WaitClick = false
 			end;task.spawn(SetToggle, Default)
+
+			Connection.ThemeChanged:Connect(ApplyHolderColor)
 
 			Button.Activated:Connect(function()
 				SetToggle(not Default)
@@ -1998,30 +2101,32 @@ end
 			local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
 
 			local SelectedFrame = InsertTheme(Create("Frame", Button, {
-				Size = UDim2.new(0, 150, 0, 18),
+				Size = UDim2.new(0, 150, 0, 26),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
-				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 6))
-			InsertTheme(Create("UIStroke", SelectedFrame, {
+				BackgroundColor3 = Theme["Color Theme"],
+				BackgroundTransparency = 0.75
+			}), "Theme")Make("Corner", SelectedFrame, UDim.new(0.5, 0))
+			local SelectedStroke = InsertTheme(Create("UIStroke", SelectedFrame, {
 				Thickness = 1,
 				ApplyStrokeMode = "Border"
 			}), "Edge")
 
 			local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
-				Size = UDim2.new(0.85, 0, 0.85, 0),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Size = UDim2.new(1, -30, 0.85, 0),
+				Position = UDim2.new(0, 14, 0.5, 0),
+				AnchorPoint = Vector2.new(0, 0.5),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamBold,
 				TextScaled = true,
+				TextXAlignment = "Left",
 				TextColor3 = Theme["Color Text"],
 				Text = "..."
 			}), "Text")
 
 			local Arrow = InsertTheme(Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 15, 0, 15),
-				Position = UDim2.new(0, -5, 0.5),
+				Position = UDim2.new(1, -12, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Image = "rbxassetid://10709791523",
 				ImageColor3 = Theme["Color Dark Text"],
@@ -2036,15 +2141,14 @@ end
 				Text = ""
 			})
 
-			local DropFrame = Create("Frame", NoClickFrame, {
+			local DropFrame = InsertTheme(Create("Frame", NoClickFrame, {
 				Size = UDim2.new(SelectedFrame.Size.X, 0, 0),
-				BackgroundTransparency = 0.1,
-				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+				BackgroundTransparency = 0,
 				AnchorPoint = Vector2.new(0, 1),
 				Name = "DropdownFrame",
 				ClipsDescendants = true,
 				Active = true
-			})Make("Corner", DropFrame)Make("Stroke", DropFrame)Make("Gradient", DropFrame, {Rotation = 60})
+			}), "Frame")Make("Corner", DropFrame, UDim.new(0, 10))Make("Stroke", DropFrame)
 
 			local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
 				ScrollBarImageColor3 = Theme["Color Theme"],
@@ -2346,24 +2450,24 @@ end
 			local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -60))
 
 			local Swatch = Create("Frame", Button, {
-				Size = UDim2.new(0, 38, 0, 18),
+				Size = UDim2.new(0, 28, 0, 28),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundTransparency = 1
-			})Make("Corner", Swatch, UDim.new(0, 5))
+			})Make("Corner", Swatch, UDim.new(0.5, 0))
 
 			InsertTheme(Create("UIStroke", Swatch, {
-				Thickness = 1,
+				Thickness = 2,
 				ApplyStrokeMode = "Border"
 			}), "Stroke")
 
 			local SwatchFill = Create("Frame", Swatch, {
-				Size = UDim2.new(1, -4, 1, -4),
+				Size = UDim2.new(1, -6, 1, -6),
 				Position = UDim2.fromScale(0.5, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundColor3 = Default,
 				BorderSizePixel = 0
-			})Make("Corner", SwatchFill, UDim.new(0, 4))
+			})Make("Corner", SwatchFill, UDim.new(0.5, 0))
 
 			local SwatchButton = Create("TextButton", Swatch, {
 				Size = UDim2.fromScale(1, 1),
@@ -2725,10 +2829,10 @@ end
 
 			local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
 				BackgroundColor3 = Theme["Color Stroke"],
-				Size = UDim2.new(1, -20, 0, 6),
+				Size = UDim2.new(1, -24, 0, 8),
 				Position = UDim2.new(0.5, 0, 0.5),
 				AnchorPoint = Vector2.new(0.5, 0.5)
-			}), "Stroke")Make("Corner", SliderBar)
+			}), "Stroke")Make("Corner", SliderBar, UDim.new(0.5, 0))
 			InsertTheme(Create("UIStroke", SliderBar, {
 				Thickness = 1,
 				ApplyStrokeMode = "Border"
@@ -2738,15 +2842,18 @@ end
 				BackgroundColor3 = Theme["Color Theme"],
 				Size = UDim2.fromScale(0.3, 1),
 				BorderSizePixel = 0
-			}), "Theme")Make("Corner", Indicator)
+			}), "Theme")Make("Corner", Indicator, UDim.new(0.5, 0))
 
-			local SliderIcon = InsertTheme(Create("Frame", SliderBar, {
-				Size = UDim2.new(0, 6, 0, 12),
-				BackgroundColor3 = Theme["Color Text"],
+			local SliderIcon = Create("Frame", SliderBar, {
+				Size = UDim2.new(0, 18, 0, 18),
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				Position = UDim2.fromScale(0.3, 0.5),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundTransparency = 0.2
-			}), "Text")Make("Corner", SliderIcon)
+				AnchorPoint = Vector2.new(0.5, 0.5)
+			})Make("Corner", SliderIcon, UDim.new(0.5, 0))
+			InsertTheme(Create("UIStroke", SliderIcon, {
+				Thickness = 2,
+				ApplyStrokeMode = "Border"
+			}), "Theme")
 
 			local LabelVal = InsertTheme(Create("TextLabel", SliderHolder, {
 				Size = UDim2.new(0, 14, 0, 14),
@@ -2789,12 +2896,12 @@ end
 			end
 
 			SliderHolder.MouseButton1Down:Connect(function()
-				CreateTween({SliderIcon, "Transparency", 0, 0.3})
+				CreateTween({SliderIcon, "Size", UDim2.new(0, 22, 0, 22), 0.15})
 				Container.ScrollingEnabled = false
 				while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do task.wait()
 					ControlPos()
 				end
-				CreateTween({SliderIcon, "Transparency", 0.2, 0.3})
+				CreateTween({SliderIcon, "Size", UDim2.new(0, 18, 0, 18), 0.15})
 				Container.ScrollingEnabled = true
 				SetFlag(Flag, Default)
 			end)
@@ -2850,26 +2957,27 @@ end
 				TDefault = false
 			end
 
-			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -180))
 
 			local SelectedFrame = InsertTheme(Create("Frame", Button, {
-				Size = UDim2.new(0, 150, 0, 18),
+				Size = UDim2.new(0, 150, 0, 26),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 6))
+			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0.5, 0))
 			InsertTheme(Create("UIStroke", SelectedFrame, {
 				Thickness = 1,
 				ApplyStrokeMode = "Border"
 			}), "Edge")
 
 			local TextBoxInput = InsertTheme(Create("TextBox", SelectedFrame, {
-				Size = UDim2.new(0.85, 0, 0.85, 0),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Size = UDim2.new(1, -34, 0.85, 0),
+				Position = UDim2.new(0, 14, 0.5, 0),
+				AnchorPoint = Vector2.new(0, 0.5),
 				BackgroundTransparency = 1,
 				Font = Enum.Font.GothamBold,
 				TextScaled = true,
+				TextXAlignment = "Left",
 				TextColor3 = Theme["Color Text"],
 				ClearTextOnFocus = TClearText,
 				PlaceholderText = TPlaceholderText,
@@ -2878,7 +2986,7 @@ end
 
 			local Pencil = InsertTheme(Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 12, 0, 12),
-				Position = UDim2.new(0, -5, 0.5),
+				Position = UDim2.new(1, -12, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				Image = "rbxassetid://15637081879",
 				ImageColor3 = Theme["Color Dark Text"],
