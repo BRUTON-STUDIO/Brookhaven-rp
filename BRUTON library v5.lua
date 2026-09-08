@@ -156,7 +156,7 @@ local brutonlib = {
 			["settings"] = "rbxassetid://10734950309",
 			["shield"] = "rbxassetid://10734951847",
 			["coffee"] = "rbxassetid://10709810814",
-			["users"] = "rbxassetid //10747373426",
+			["users"] = "rbxassetid://10747373426",
             ["baby"] = "rbxassetid://10709769732",
 			["ghost"] = "rbxassetid://10723396107",
 			["cpu"] = "rbxassetid://10709813383",
@@ -695,7 +695,7 @@ function brutonlib:SetTheme(NewTheme)
 	SaveJson("BRUTON library V5.json", brutonlib.Save)
 	Theme = brutonlib.Themes[NewTheme]
 	
-	Comnection:FireConnection("ThemeChanged", NewTheme)
+	Connection:FireConnection("ThemeChanged", NewTheme)
 	table.foreach(brutonlib.Instances, function(_,Val)
 		if Val.Type == "Gradient" then
 			Val.Instance.Color = Theme["Color Hub 1"]
@@ -922,7 +922,7 @@ function brutonlib:MakeWindow(Configs)
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.new(1, 5, 0.9),
 			Text = WMiniText,
-			TextColor3 = Theme["Color Dark Greem"],
+			TextColor3 = Theme["Color Dark Green"],
 			BackgroundTransparency = 1,
 			TextXAlignment = "Left",
 			TextYAlignment = "Bottom",
@@ -3761,7 +3761,7 @@ end
 				Theme["Color Heading"] = NewColor
 				Theme["Color Bubble"] = NewColor
 				Theme["Color Dark Purple"] = NewColor
-				Theme["Color Dark Greem"] = NewColor
+				Theme["Color Dark Green"] = NewColor
 				brutonlib:SetTheme(brutonlib.Save.Theme)
 			end
 		})
