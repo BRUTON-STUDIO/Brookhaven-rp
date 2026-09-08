@@ -248,14 +248,16 @@ local Funcs = {} do
 	end
 	
 	function Funcs:ToggleVisible(Obj, Bool)
-		Obj.Visible = Bool ~= nil and Bool or Obj.Visible
+		if Bool == nil then return end
+		Obj.Visible = Bool
 	end
 	
-	function Funcs:ToggleParent(Obj, Parent)
-		if Bool ~= nil then
-			Obj.Parent = Bool
+	function Funcs:ToggleParent(Obj, Bool, ParentTarget)
+		if Bool == nil then return end
+		if Bool then
+			Obj.Parent = ParentTarget or Obj.Parent
 		else
-			Obj.Parent = not Obj.Parent and Parent
+			Obj.Parent = nil
 		end
 	end
 	
