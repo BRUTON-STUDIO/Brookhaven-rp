@@ -1213,8 +1213,8 @@ end
 	local Window, FirstTab = {}, false
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
-			Title = "Close",
-			Text = "Deseja realmente fechar o Drip Client? Ele contém recursos essenciais e fechar agora pode interromper funções importantes, causar falhas ou perder suas configurações. Cuidado antes de prosseguir!",
+			Title = "BRUTON HUB",
+			Text = "متاكد تريد تغلق سكربت بروتون اذا قفلتو وفي وضائف شغالة رح يصيرلك مشكل متقدر توقفها \n♻️",
 			Options = {
 				{"Confirm", function()
 					ScreenGui:Destroy()
@@ -3746,23 +3746,23 @@ end
 			end
 		})
 
-		SettingsTab:AddSection({Name = "الألوان"})
+--		SettingsTab:AddSection({Name = "الألوان"})
 
-		SettingsTab:AddColorPicker({
-			Name = "لون الثيم",
-			Desc = "",
-			Default = Theme["Color Theme"],
-			Flag = "MainThemeColor",
-			Callback = function(NewColor)
-				Theme["Color Theme"] = NewColor
-				Theme["Color Edge"] = NewColor
-				Theme["Color Heading"] = NewColor
-				Theme["Color Bubble"] = NewColor
-				Theme["Color Dark Purple"] = NewColor
-				Theme["Color Dark Greem"] = NewColor
-				brutonlib:SetTheme(brutonlib.Save.Theme)
-			end
-		})
+--		SettingsTab:AddColorPicker({
+--			Name = "لون الثيم",
+--			Desc = "",
+--			Default = Theme["Color Theme"],
+	--		Flag = "MainThemeColor",
+	--		Callback = function(NewColor)
+			--	Theme["Color Theme"] = NewColor
+		--		Theme["Color Edge"] = NewColor
+	--			Theme["Color Heading"] = NewColor
+	--			Theme["Color Bubble"] = NewColor
+	--			Theme["Color Dark Purple"] = NewColor
+		--		Theme["Color Dark Greem"] = NewColor
+		--		brutonlib:SetTheme(brutonlib.Save.Theme)
+	--		end
+	--	})
 	end
 
 	CloseButton.Activated:Connect(Window.CloseBtn)
