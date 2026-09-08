@@ -1466,6 +1466,7 @@ end
 		if type(paste) == "table" then Configs = paste end
 		local TName = Configs[1] or Configs.Title or "Tab!"
 		local TIcon = Configs[2] or Configs.Icon or ""
+		local IsSettingsTab = Configs.IsSettings == true
 		
 		TIcon = brutonlib:GetIcon(TIcon)
 		if not TIcon:find("rbxassetid://") or TIcon:gsub("rbxassetid://", ""):len() < 6 then
@@ -1532,7 +1533,7 @@ end
 		
 		table.insert(ContainerList, Container)
 		
-		if not FirstTab then Container.Parent = Containers end
+		if not FirstTab and not IsSettingsTab then Container.Parent = Containers end
 		
 		local function Tabs()
 			if Container.Parent then return end
@@ -1556,10 +1557,15 @@ end
 		end
 		TabSelect.Activated:Connect(Tabs)
 		
-		FirstTab = true
+		if not IsSettingsTab then
+			FirstTab = true
+		end
 		local Tab = {}
 		table.insert(brutonlib.Tabs, {TabInfo = {Name = TName, Icon = TIcon}, func = Tab, Cont = Container})
 		Tab.Cont = Container
+		if Container.Parent and not IsSettingsTab then
+			Window.LastTab = Tab
+		end
 		
 		function  Tab:Disable()
 			Container.Parent = nil
@@ -1570,6 +1576,9 @@ end
 		end
 		function Tab:Enable()
 			Tabs()
+			if not IsSettingsTab then
+				Window.LastTab = Tab
+			end
 		end
 		function Tab:Visible(Bool)
 			Funcs:ToggleVisible(TabSelect, Bool)
@@ -3612,7 +3621,7 @@ end
 	end
 
 	do
-		local SettingsTab = Window:MakeTab({"الاعدادات", "settings"})
+		local SettingsTab = Window:MakeTab({"الاعدادات", "settings", IsSettings = true})
 		SettingsTab:Visible(false)
 
 		local Cont = SettingsTab.Cont
@@ -3625,7 +3634,11 @@ end
 
 		SettingButton.MouseButton1Click:Connect(function()
 			if Cont.Parent then
-				Window:SelectTab(1)
+				if Window.LastTab then
+					Window.LastTab:Enable()
+				else
+					Cont.Parent = nil
+				end
 			else
 				SettingsTab:Enable()
 			end
