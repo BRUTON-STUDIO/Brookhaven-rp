@@ -1,5 +1,3 @@
--- by redz hub 
---Modified by drip client&BRUTON HUB
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -156,7 +154,7 @@ local brutonlib = {
 			["settings"] = "rbxassetid://10734950309",
 			["shield"] = "rbxassetid://10734951847",
 			["coffee"] = "rbxassetid://10709810814",
-			["users"] = "rbxassetid://10747373426",
+			["users"] = "rbxassetid //10747373426",
             ["baby"] = "rbxassetid://10709769732",
 			["ghost"] = "rbxassetid://10723396107",
 			["cpu"] = "rbxassetid://10709813383",
@@ -695,7 +693,7 @@ function brutonlib:SetTheme(NewTheme)
 	SaveJson("BRUTON library V5.json", brutonlib.Save)
 	Theme = brutonlib.Themes[NewTheme]
 	
-	Connection:FireConnection("ThemeChanged", NewTheme)
+	Comnection:FireConnection("ThemeChanged", NewTheme)
 	table.foreach(brutonlib.Instances, function(_,Val)
 		if Val.Type == "Gradient" then
 			Val.Instance.Color = Theme["Color Hub 1"]
@@ -922,7 +920,7 @@ function brutonlib:MakeWindow(Configs)
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.new(1, 5, 0.9),
 			Text = WMiniText,
-			TextColor3 = Theme["Color Dark Green"],
+			TextColor3 = Theme["Color Dark Greem"],
 			BackgroundTransparency = 1,
 			TextXAlignment = "Left",
 			TextYAlignment = "Bottom",
@@ -1215,13 +1213,13 @@ end
 	local Window, FirstTab = {}, false
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
-			Title = "BRUTON HUB",
-			Text = "متاكد تريد تغلق سكربت بروتون اذا قفلتو وفي وضائف شغالة رح يصيرلك مشكل متقدر توقفها\n♻️",
+			Title = "Close",
+			Text = "Deseja realmente fechar o Drip Client? Ele contém recursos essenciais e fechar agora pode interromper funções importantes, causar falhas ou perder suas configurações. Cuidado antes de prosseguir!",
 			Options = {
-				{"تاكيد", function()
+				{"Confirm", function()
 					ScreenGui:Destroy()
 				end},
-				{"الغاء"}
+				{"Cancel"}
 			}
 		})
 	end
@@ -3748,7 +3746,7 @@ end
 			end
 		})
 
---[[		SettingsTab:AddSection({Name = "الألوان"})
+		SettingsTab:AddSection({Name = "الألوان"})
 
 		SettingsTab:AddColorPicker({
 			Name = "لون الثيم",
@@ -3761,12 +3759,12 @@ end
 				Theme["Color Heading"] = NewColor
 				Theme["Color Bubble"] = NewColor
 				Theme["Color Dark Purple"] = NewColor
-				Theme["Color Dark Green"] = NewColor
+				Theme["Color Dark Greem"] = NewColor
 				brutonlib:SetTheme(brutonlib.Save.Theme)
 			end
 		})
 	end
-]] 
+
 	CloseButton.Activated:Connect(Window.CloseBtn)
 	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
 
