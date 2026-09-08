@@ -1,3 +1,5 @@
+-- by redz hub 
+--Modified by drip client&BRUTON HUB
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -1213,13 +1215,13 @@ end
 	local Window, FirstTab = {}, false
 	function Window:CloseBtn()
 		local Dialog = Window:Dialog({
-			Title = "Close",
-			Text = "Deseja realmente fechar o Drip Client? Ele contém recursos essenciais e fechar agora pode interromper funções importantes, causar falhas ou perder suas configurações. Cuidado antes de prosseguir!",
+			Title = "BRUTON HUB",
+			Text = "متاكد تريد تغلق سكربت بروتون اذا قفلتو وفي وضائف شغالة رح يصيرلك مشكل متقدر توقفها\n♻️",
 			Options = {
-				{"Confirm", function()
+				{"تاكيد", function()
 					ScreenGui:Destroy()
 				end},
-				{"Cancel"}
+				{"الغاء"}
 			}
 		})
 	end
@@ -3746,7 +3748,7 @@ end
 			end
 		})
 
-		SettingsTab:AddSection({Name = "الألوان"})
+--[[		SettingsTab:AddSection({Name = "الألوان"})
 
 		SettingsTab:AddColorPicker({
 			Name = "لون الثيم",
@@ -3764,7 +3766,7 @@ end
 			end
 		})
 	end
-
+]] 
 	CloseButton.Activated:Connect(Window.CloseBtn)
 	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
 
