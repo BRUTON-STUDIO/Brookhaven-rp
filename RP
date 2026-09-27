@@ -10,7 +10,6 @@ Event:FireServer(
     "RolePlayName",
     "سكربت👾: المطور بروتون👾"
 )
-task.wait(120)
 local Event = game:GetService("ReplicatedStorage").RE["1RPNam1eTex1t"]
 Event:FireServer(
     "RolePlayBio",
